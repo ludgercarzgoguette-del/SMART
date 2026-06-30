@@ -1,156 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ht">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>LOCOMOTIVE PRO X</title>
-
 <style>
-body{
-background:#071320;
-font-family:Arial,sans-serif;
-color:white;
-margin:0;
-padding:20px;
-}
-
-h1{
-margin:0;
-}
-
-.container{
-max-width:1300px;
-margin:auto;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-margin-top:20px;
-}
-
-.card{
-background:#102235;
-border-radius:15px;
-padding:20px;
-box-shadow:0 0 15px rgba(0,0,0,.25);
-}
-
-button{
-background:#00c853;
-color:white;
-border:none;
-padding:14px;
-width:100%;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-}
-
-.watch{
-display:flex;
-justify-content:space-between;
-padding:8px 0;
-border-bottom:1px solid #20384d;
-}
-
-.good{
-color:#00e676;
-}
-
-.bad{
-color:#ff5252;
-}
+:root{--bg:#07111f;--card:#101b2e;--card2:#14243d;--line:#243b5a;--text:#f7fbff;--muted:#8fa8c8;--green:#00e676;--red:#ff5252;--yellow:#ffd54f;--blue:#4da3ff;}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top,#10213c 0,#07111f 42%,#040814 100%);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+.wrap{max-width:1320px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}.brand h1{margin:0;font-size:34px;letter-spacing:1px}.brand p{margin:6px 0 0;color:var(--muted)}
+.clock{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px;text-align:right;min-width:220px}.clock b{font-size:22px;color:var(--yellow)}.clock span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}.card{background:linear-gradient(180deg,var(--card),#0c1728);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 18px 35px rgba(0,0,0,.25)}
+.card h2{font-size:18px;margin:0 0 14px}.wide{grid-column:span 8}.side{grid-column:span 4}.half{grid-column:span 6}.full{grid-column:span 12}
+.row{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(143,168,200,.16);padding:10px 0;gap:12px}.row:last-child{border-bottom:0}.sym{font-weight:800;letter-spacing:.5px}.muted{color:var(--muted)}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}
+.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800}.pill.green{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.08)}.pill.red{border-color:rgba(255,82,82,.4);background:rgba(255,82,82,.08)}.pill.yellow{border-color:rgba(255,213,79,.4);background:rgba(255,213,79,.08)}
+.scoreBox{display:flex;align-items:center;gap:16px}.score{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) var(--deg),rgba(255,255,255,.09) 0);position:relative}.score:after{content:"";width:86px;height:86px;border-radius:50%;background:#0b1627;position:absolute}.score b{position:relative;z-index:1;font-size:26px}.reason{font-size:14px;color:var(--muted);line-height:1.55}
+button{width:100%;border:0;border-radius:14px;padding:15px 16px;font-size:17px;font-weight:900;color:#04101f;background:linear-gradient(135deg,#00e676,#4da3ff);cursor:pointer}button:active{transform:scale(.99)}
+.signal{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.signal div{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px}.signal small{display:block;color:var(--muted);margin-bottom:6px}.signal b{font-size:20px}
+.newsItem{padding:12px;border:1px solid rgba(143,168,200,.16);border-radius:14px;margin-bottom:10px;background:rgba(255,255,255,.03)}
+@media(max-width:850px){.wide,.side,.half{grid-column:span 12}.signal{grid-template-columns:repeat(2,1fr)}.brand h1{font-size:28px}}
 </style>
-
 </head>
-
 <body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><h1>🚂 LOCOMOTIVE PRO X</h1><p>Opening Bell AI Assistant · 9:25 AM → 10:00 AM · TSLA / META First</p></div>
+    <div class="clock"><b id="time">--:--:--</b><span id="session">Market session loading...</span></div>
+  </div>
 
-<div class="container">
+  <div class="grid">
+    <div class="card wide">
+      <h2>📊 Market Balance</h2>
+      <div class="scoreBox">
+        <div class="score" id="scoreRing" style="--deg:70%"><b id="marketScore">70%</b></div>
+        <div>
+          <h2 id="marketMood" class="green" style="margin-bottom:6px">Bullish Bias</h2>
+          <div class="reason" id="marketReason">SPY/QQQ/NQ positive, VIX controlled. Waiting for live API connection.</div>
+        </div>
+      </div>
+      <div id="marketRows" style="margin-top:14px"></div>
+    </div>
 
-<h1>🚂 LOCOMOTIVE PRO X</h1>
+    <div class="card side">
+      <h2>🚀 Morning Scan</h2>
+      <button onclick="runScan()">RUN AI SCAN</button>
+      <div id="scanStatus" class="reason" style="margin-top:12px">Ready. Scan will rank TSLA/META and return CALL, PUT, or WAIT.</div>
+    </div>
 
-<p>Opening Bell AI Assistant</p>
+    <div class="card half">
+      <h2>🔥 Watchlist</h2>
+      <div id="watchRows"></div>
+    </div>
 
-<div class="grid">
+    <div class="card half">
+      <h2>🎯 AI Trade Signal</h2>
+      <div id="tradeResult">
+        <div class="signal">
+          <div><small>Best Trade</small><b>WAIT</b></div>
+          <div><small>Confidence</small><b>--%</b></div>
+          <div><small>Quality</small><b>--</b></div>
+          <div><small>Risk</small><b>--</b></div>
+        </div>
+        <p class="reason">Run Morning Scan to generate entry, stop, TP1, TP2, and explanation.</p>
+      </div>
+    </div>
 
-<div class="card">
+    <div class="card half">
+      <h2>📰 News AI Panel</h2>
+      <div class="newsItem"><b class="yellow">Neutral</b><br><span class="muted">News API not connected yet. Manual macro bias is neutral.</span></div>
+      <div class="newsItem"><b class="blue">Watch</b><br><span class="muted">Fed, CPI/PPI, earnings, Elon/Tesla headlines, AI chip news.</span></div>
+    </div>
 
-<h2>📊 Market Balance</h2>
+    <div class="card half">
+      <h2>📅 Economic Calendar</h2>
+      <div class="row"><span>CPI / Inflation</span><span class="pill yellow">Watch</span></div>
+      <div class="row"><span>PPI</span><span class="pill yellow">Watch</span></div>
+      <div class="row"><span>FOMC / Powell</span><span class="pill red">High Impact</span></div>
+      <div class="row"><span>NFP / Jobs</span><span class="pill yellow">Watch</span></div>
+    </div>
 
-<div class="watch"><span>SPY</span><span class="good">Bullish</span></div>
-<div class="watch"><span>QQQ</span><span class="good">Bullish</span></div>
-<div class="watch"><span>VIX</span><span class="bad">Bearish</span></div>
-<div class="watch"><span>NQ</span><span class="good">Bullish</span></div>
-
-</div>
-
-<div class="card">
-
-<h2>🚀 Morning Scan</h2>
-
-<button onclick="scan()">RUN AI SCAN</button>
-
-<p id="scanResult">Waiting...</p>
-
-</div>
-
-<div class="card">
-
-<h2>⭐ Watchlist</h2>
-
-<div class="watch"><span>TSLA</span><span>WAIT</span></div>
-<div class="watch"><span>META</span><span>WAIT</span></div>
-<div class="watch"><span>NVDA</span><span>WAIT</span></div>
-<div class="watch"><span>AMD</span><span>WAIT</span></div>
-
-</div>
-
-<div class="card">
-
-<h2>📰 Economic Calendar</h2>
-
-<p>CPI</p>
-<p>FOMC</p>
-<p>NFP</p>
-<p>Powell</p>
-
-</div>
-
-</div>
-
+    <div class="card full">
+      <h2>📖 AI Trading Journal</h2>
+      <div id="journal" class="reason">No trade saved yet. After 10:00 AM, future backend will evaluate target/stop and update learning weights.</div>
+    </div>
+  </div>
 </div>
 
 <script>
-
-function scan(){
-
-document.getElementById("scanResult").innerHTML=`
-
-<b>Today's Trade</b><br><br>
-
-TSLA<br>
-
-🟢 CALL<br><br>
-
-Confidence: 91%<br>
-
-Entry: --<br>
-
-Stop: --<br>
-
-TP1: --<br>
-
-TP2: --
-
-`;
-
+const market = [
+  {sym:'SPY', name:'S&P 500 ETF', chg:0.42, weight:18},
+  {sym:'QQQ', name:'Nasdaq ETF', chg:0.63, weight:18},
+  {sym:'NQ', name:'Nasdaq Futures', chg:0.71, weight:20},
+  {sym:'VIX', name:'Volatility', chg:-2.15, weight:12, inverse:true},
+  {sym:'OIL', name:'WTI / Oil', chg:0.18, weight:8, inverse:true},
+  {sym:'DXY', name:'US Dollar', chg:-0.12, weight:6, inverse:true},
+  {sym:'US10Y', name:'10Y Yield', chg:-0.04, weight:6, inverse:true},
+  {sym:'COMP', name:'Nasdaq Composite', chg:0.55, weight:12}
+];
+const watch = [
+  {sym:'TSLA', price:318.20, chg:1.18}, {sym:'META', price:742.11, chg:0.34}, {sym:'NVDA', price:154.50, chg:1.02}, {sym:'AMD', price:168.45, chg:-0.22}, {sym:'AAPL', price:210.44, chg:0.14}, {sym:'AMZN', price:224.80, chg:0.52}, {sym:'MSFT', price:498.30, chg:0.28}, {sym:'NFLX', price:1088.10, chg:-0.45}
+];
+function pct(v){return (v>0?'+':'')+v.toFixed(2)+'%'}
+function cls(v){return v>0?'green':v<0?'red':'yellow'}
+function render(){
+  const m = document.getElementById('marketRows');
+  m.innerHTML = market.map(x=>`<div class="row"><div><span class="sym">${x.sym}</span><br><span class="muted">${x.name}</span></div><span class="${cls(x.inverse?-x.chg:x.chg)}">${pct(x.chg)}</span></div>`).join('');
+  document.getElementById('watchRows').innerHTML = watch.map(x=>`<div class="row"><div><span class="sym">${x.sym}</span><br><span class="muted">$${x.price.toFixed(2)}</span></div><span class="${cls(x.chg)}">${pct(x.chg)}</span></div>`).join('');
+  const score = computeMarketScore();
+  document.getElementById('marketScore').textContent = score+'%';
+  document.getElementById('scoreRing').style.setProperty('--deg',score+'%');
+  document.getElementById('marketMood').textContent = score>=75?'Strong Bullish':score>=60?'Bullish Bias':score>=45?'Neutral / Wait':'Bearish Bias';
+  document.getElementById('marketMood').className = score>=60?'green':score>=45?'yellow':'red';
 }
-
+function computeMarketScore(){
+  let total=0, max=0;
+  market.forEach(x=>{let s=x.chg; if(x.inverse)s=-s; total += Math.max(-1.5,Math.min(1.5,s))*x.weight; max += 1.5*x.weight;});
+  return Math.round(50 + (total/max)*50);
+}
+function runScan(){
+  const score = computeMarketScore();
+  const tsla = watch.find(x=>x.sym==='TSLA'); const meta = watch.find(x=>x.sym==='META');
+  const pick = tsla.chg >= meta.chg ? tsla : meta;
+  let signal='WAIT', confidence=Math.max(55,score-5), quality='B', risk='Medium';
+  if(score>=78 && pick.chg>0.4){signal='CALL'; confidence=Math.min(94,score+8); quality='A'; risk='Low'}
+  else if(score<=38 && pick.chg<-0.4){signal='PUT'; confidence=Math.min(92,100-score); quality='A'; risk='Medium'}
+  else if(score>=60){signal='WAIT'; confidence=68; quality='C'; risk='Medium'}
+  const entry=pick.price, stop=signal==='CALL'?entry*0.992:entry*1.008, tp1=signal==='CALL'?entry*1.012:entry*0.988, tp2=signal==='CALL'?entry*1.022:entry*0.978;
+  document.getElementById('tradeResult').innerHTML = `<div class="signal"><div><small>Best Trade</small><b>${pick.sym} ${signal}</b></div><div><small>Confidence</small><b>${confidence}%</b></div><div><small>Quality</small><b>${quality}</b></div><div><small>Risk</small><b>${risk}</b></div></div><p class="reason"><b>Entry:</b> $${entry.toFixed(2)} · <b>Stop:</b> $${stop.toFixed(2)} · <b>TP1:</b> $${tp1.toFixed(2)} · <b>TP2:</b> $${tp2.toFixed(2)}<br><br><b>Why:</b> Market Balance ${score}%, ${pick.sym} momentum ${pct(pick.chg)}, VIX condition supportive, waiting for live backend/API for final confirmation.</p>`;
+  document.getElementById('scanStatus').innerHTML = `Scan complete at ${new Date().toLocaleTimeString()}.`;
+  document.getElementById('journal').innerHTML = `<b>${new Date().toLocaleString()}</b> — ${pick.sym} ${signal}, confidence ${confidence}%, score ${score}%. Pending 10:00 AM evaluator.`;
+}
+function tick(){
+  const now=new Date(); document.getElementById('time').textContent=now.toLocaleTimeString();
+  const mins=now.getHours()*60+now.getMinutes();
+  let s='Closed / Preparing'; if(mins>=565&&mins<570)s='9:25 Morning Scan window'; else if(mins>=570&&mins<600)s='Opening Bell Mode active'; else if(mins>=600&&mins<960)s='Market open';
+  document.getElementById('session').textContent=s;
+}
+render(); tick(); setInterval(tick,1000);
 </script>
-
 </body>
-
 </html>
