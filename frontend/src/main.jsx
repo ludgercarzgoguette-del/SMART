@@ -95,7 +95,18 @@ function App() {
   }, [inputs]);
 
   const update = (key, value) => setInputs((p) => ({ ...p, [key]: Number(value) }));
+const runLiveScan = async () => {
+  const res = await fetch("https://smart-f7sf.onrender.com/morning-scan", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(inputs)
+  });
 
+  const data = await res.json();
+  console.log(data);
+};
   const saveScan = () => {
     const entry = { date: new Date().toLocaleString(), marketScore: result.market.score, best: result.best, tsla: result.tsla, meta: result.meta, inputs };
     const next = [entry, ...journal].slice(0, 22);
@@ -126,7 +137,7 @@ function App() {
           <div className="card-title"><Zap size={18}/> Best Trade</div>
           <div className="best"><Badge action={result.best.action} /> {result.best.symbol}</div>
           <p>Confidence: <b>{result.best.confidence}%</b> · Quality: <b>{result.best.quality}</b></p>
-          <button onClick={saveScan}>🚀 Save Morning Scan</button>
+          <button onClick={runLiveScan}>🚀 Save Morning Scan</button>
         </div>
       </section>
 
