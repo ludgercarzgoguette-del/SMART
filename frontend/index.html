@@ -86,56 +86,445 @@ button{width:100%;border:0;border-radius:14px;padding:15px 16px;font-size:17px;f
 </div>
 
 <script>
+<script>
 const market = [
   {sym:'SPY', name:'S&P 500 ETF', chg:0.42, weight:18},
   {sym:'QQQ', name:'Nasdaq ETF', chg:0.63, weight:18},
   {sym:'NQ', name:'Nasdaq Futures', chg:0.71, weight:20},
-  {sym:'VIX', name:'Volatility', chg:-2.15, weight:12, inverse:true},
+  {sym:'VIX', name:'Volatility Index', chg:-2.15, weight:16, inverse:true},
   {sym:'OIL', name:'WTI / Oil', chg:0.18, weight:8, inverse:true},
   {sym:'DXY', name:'US Dollar', chg:-0.12, weight:6, inverse:true},
   {sym:'US10Y', name:'10Y Yield', chg:-0.04, weight:6, inverse:true},
   {sym:'COMP', name:'Nasdaq Composite', chg:0.55, weight:12}
 ];
+
 const watch = [
-  {sym:'TSLA', price:318.20, chg:1.18}, {sym:'META', price:742.11, chg:0.34}, {sym:'NVDA', price:154.50, chg:1.02}, {sym:'AMD', price:168.45, chg:-0.22}, {sym:'AAPL', price:210.44, chg:0.14}, {sym:'AMZN', price:224.80, chg:0.52}, {sym:'MSFT', price:498.30, chg:0.28}, {sym:'NFLX', price:1088.10, chg:-0.45}
+  {sym:'TSLA', price:318.20, chg:1.18, priority:true},
+  {sym:'META', price:742.11, chg:0.34, priority:true},
+  {sym:'NVDA', price:154.50, chg:1.02},
+  {sym:'AMD', price:168.45, chg:-0.22},
+  {sym:'AAPL', price:210.44, chg:0.14},
+  {sym:'AMZN', price:224.80, chg:0.52},
+  {sym:'MSFT', price:498.30, chg:0.28},
+  {sym:'NFLX', price:1088.10, chg:-0.45}
 ];
-function pct(v){return (v>0?'+':'')+v.toFixed(2)+'%'}
-function cls(v){return v>0?'green':v<0?'red':'yellow'}
-function render(){
-  const m = document.getElementById('marketRows');
-  m.innerHTML = market.map(x=>`<div class="row"><div><span class="sym">${x.sym}</span><br><span class="muted">${x.name}</span></div><span class="${cls(x.inverse?-x.chg:x.chg)}">${pct(x.chg)}</span></div>`).join('');
-  document.getElementById('watchRows').innerHTML = watch.map(x=>`<div class="row"><div><span class="sym">${x.sym}</span><br><span class="muted">$${x.price.toFixed(2)}</span></div><span class="${cls(x.chg)}">${pct(x.chg)}</span></div>`).join('');
-  const score = computeMarketScore();
-  document.getElementById('marketScore').textContent = score+'%';
-  document.getElementById('scoreRing').style.setProperty('--deg',score+'%');
-  document.getElementById('marketMood').textContent = score>=75?'Strong Bullish':score>=60?'Bullish Bias':score>=45?'Neutral / Wait':'Bearish Bias';
-  document.getElementById('marketMood').className = score>=60?'green':score>=45?'yellow':'red';
+
+function pct(v){
+  return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
 }
+
+function cls(v){
+  return v > 0 ? 'green' : v < 0 ? 'red' : 'yellow';
+}
+
 function computeMarketScore(){
-  let total=0, max=0;
-  market.forEach(x=>{let s=x.chg; if(x.inverse)s=-s; total += Math.max(-1.5,Math.min(1.5,s))*x.weight; max += 1.5*x.weight;});
-  return Math.round(50 + (total/max)*50);
+  let total = 0;
+  let max = 0;
+
+  market.forEach(x => {
+    let move = x.inverse ? -x.chg : x.chg;
+    move = Math.max(-1.5, Math.min(1.5, move));
+    total += move * x.weight;
+    max += 1.5 * x.weight;
+  });
+
+  return Math.round(50 + (total / max) * 50);
 }
+
+function getMarketMood(score){
+  if(score >= 82) return {text:'Strong Bullish', color:'green'};
+  if(score >= 65) return {text:'Bullish Bias', color:'green'};
+  if(score >= 45) return {text:'Neutral / Wait', color:'yellow'};
+  return {text:'Bearish Bias', color:'red'};
+}
+
+function computeAIHealth(score){
+  let dataQuality = 82;
+  let marketQuality = score;
+  let riskQuality = score >= 45 && score <= 60 ? 62 : 86;
+  let total = Math.round((dataQuality + marketQuality + riskQuality) / 3);
+
+  return {
+    total,
+    dataQuality,
+    marketQuality,
+    riskQuality
+  };
+}
+
+function render(){
+  const marketRows = document.getElementById('marketRows');
+
+  marketRows.innerHTML = market.map(x => {
+    const effective = x.inverse ? -x.chg : x.chg;
+    return `
+      <div class="row">
+        <div>
+          <span class="sym">${x.sym}</span><br>
+          <span class="muted">${x.name}</span>
+        </div>
+        <span class="${cls(effective)}">${pct(x.chg)}</span>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('watchRows').innerHTML = watch.map(x => {
+    let signal = 'WAIT';
+    if(x.chg > 0.75) signal = 'CALL';
+    if(x.chg < -0.75) signal = 'PUT';
+
+    return `
+      <div class="row">
+        <div>
+          <span class="sym">${x.priority ? '⭐ ' : ''}${x.sym}</span><br>
+          <span class="muted">$${x.price.toFixed(2)}</span>
+        </div>
+        <div style="text-align:right">
+          <span class="${cls(x.chg)}">${pct(x.chg)}</span><br>
+          <span class="pill ${signal === 'CALL' ? 'green' : signal === 'PUT' ? 'red' : 'yellow'}">${signal}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const score = computeMarketScore();
+  const mood = getMarketMood(score);
+
+  document.getElementById('marketScore').textContent = score + '%';
+  document.getElementById('scoreRing').style.setProperty('--deg', score + '%');
+  document.getElementById('marketMood').textContent = mood.text;
+  document.getElementById('marketMood').className = mood.color;
+
+  document.getElementById('marketReason').innerHTML = `
+    Market Balance: <b>${score}%</b>. 
+    SPY/QQQ/NQ are checked with VIX, OIL, DXY and US10Y as risk filters.
+    Opening Bell Mode is focused on 9:25 AM → 10:00 AM.
+  `;
+}
+
+function grade(score){
+  if(score >= 95) return 'A+';
+  if(score >= 88) return 'A';
+  if(score >= 78) return 'B';
+  if(score >= 68) return 'C';
+  return 'D';
+}
+
+function chooseBestTrade(score){
+  const tsla = watch.find(x => x.sym === 'TSLA');
+  const meta = watch.find(x => x.sym === 'META');
+
+  let pick = tsla.chg >= meta.chg ? tsla : meta;
+  let signal = 'WAIT';
+  let confidence = 60;
+  let risk = 'Medium';
+
+  if(score >= 78 && pick.chg > 0.35){
+    signal = 'CALL';
+    confidence = Math.min(96, score + Math.round(pick.chg * 5));
+    risk = score >= 85 ? 'Low' : 'Medium';
+  } else if(score <= 38 && pick.chg < -0.35){
+    signal = 'PUT';
+    confidence = Math.min(94, 100 - score + Math.round(Math.abs(pick.chg) * 5));
+    risk = 'Medium';
+  } else {
+    signal = 'WAIT';
+    confidence = score >= 60 ? 68 : 58;
+    risk = 'Medium';
+  }
+
+  return {pick, signal, confidence, risk};
+}
+
 function runScan(){
   const score = computeMarketScore();
-  const tsla = watch.find(x=>x.sym==='TSLA'); const meta = watch.find(x=>x.sym==='META');
-  const pick = tsla.chg >= meta.chg ? tsla : meta;
-  let signal='WAIT', confidence=Math.max(55,score-5), quality='B', risk='Medium';
-  if(score>=78 && pick.chg>0.4){signal='CALL'; confidence=Math.min(94,score+8); quality='A'; risk='Low'}
-  else if(score<=38 && pick.chg<-0.4){signal='PUT'; confidence=Math.min(92,100-score); quality='A'; risk='Medium'}
-  else if(score>=60){signal='WAIT'; confidence=68; quality='C'; risk='Medium'}
-  const entry=pick.price, stop=signal==='CALL'?entry*0.992:entry*1.008, tp1=signal==='CALL'?entry*1.012:entry*0.988, tp2=signal==='CALL'?entry*1.022:entry*0.978;
-  document.getElementById('tradeResult').innerHTML = `<div class="signal"><div><small>Best Trade</small><b>${pick.sym} ${signal}</b></div><div><small>Confidence</small><b>${confidence}%</b></div><div><small>Quality</small><b>${quality}</b></div><div><small>Risk</small><b>${risk}</b></div></div><p class="reason"><b>Entry:</b> $${entry.toFixed(2)} · <b>Stop:</b> $${stop.toFixed(2)} · <b>TP1:</b> $${tp1.toFixed(2)} · <b>TP2:</b> $${tp2.toFixed(2)}<br><br><b>Why:</b> Market Balance ${score}%, ${pick.sym} momentum ${pct(pick.chg)}, VIX condition supportive, waiting for live backend/API for final confirmation.</p>`;
-  document.getElementById('scanStatus').innerHTML = `Scan complete at ${new Date().toLocaleTimeString()}.`;
-  document.getElementById('journal').innerHTML = `<b>${new Date().toLocaleString()}</b> — ${pick.sym} ${signal}, confidence ${confidence}%, score ${score}%. Pending 10:00 AM evaluator.`;
+  const aiHealth = computeAIHealth(score);
+  const result = chooseBestTrade(score);
+
+  const entry = result.pick.price;
+  const stop = result.signal === 'CALL' ? entry * 0.992 :
+               result.signal === 'PUT' ? entry * 1.008 : entry;
+
+  const tp1 = result.signal === 'CALL' ? entry * 1.012 :
+              result.signal === 'PUT' ? entry * 0.988 : entry;
+
+  const tp2 = result.signal === 'CALL' ? entry * 1.022 :
+              result.signal === 'PUT' ? entry * 0.978 : entry;
+
+  document.getElementById('tradeResult').innerHTML = `
+    <div class="signal">
+      <div><small>Best Trade</small><b>${result.pick.sym} ${result.signal}</b></div>
+      <div><small>Confidence</small><b>${result.confidence}%</b></div>
+      <div><small>Quality</small><b>${grade(result.confidence)}</b></div>
+      <div><small>Risk</small><b>${result.risk}</b></div>
+    </div>
+
+    <p class="reason">
+      <b>Entry:</b> $${entry.toFixed(2)} ·
+      <b>Stop:</b> $${stop.toFixed(2)} ·
+      <b>TP1:</b> $${tp1.toFixed(2)} ·
+      <b>TP2:</b> $${tp2.toFixed(2)}
+      <br><br>
+      <b>Why this trade?</b><br>
+      • Market Balance: ${score}%<br>
+      • AI Health: ${aiHealth.total}%<br>
+      • ${result.pick.sym} momentum: ${pct(result.pick.chg)}<br>
+      • VIX / DXY / US10Y are used as inverse risk filters<br>
+      • Final live API confirmation still required
+    </p>
+  `;
+
+  document.getElementById('scanStatus').innerHTML = `
+    Scan complete at ${new Date().toLocaleTimeString()}.
+    AI Health: <b>${aiHealth.total}%</b>.
+  `;
+
+  document.getElementById('journal').innerHTML = `
+    <b>${new Date().toLocaleString()}</b> — 
+    ${result.pick.sym} ${result.signal}, confidence ${result.confidence}%, 
+    market score ${score}%, AI Health ${aiHealth.total}%.
+    Pending 10:00 AM evaluator.
+  `;
 }
+
 function tick(){
-  const now=new Date(); document.getElementById('time').textContent=now.toLocaleTimeString();
-  const mins=now.getHours()*60+now.getMinutes();
-  let s='Closed / Preparing'; if(mins>=565&&mins<570)s='9:25 Morning Scan window'; else if(mins>=570&&mins<600)s='Opening Bell Mode active'; else if(mins>=600&&mins<960)s='Market open';
-  document.getElementById('session').textContent=s;
+  const now = new Date();
+  document.getElementById('time').textContent = now.toLocaleTimeString();
+
+  const mins = now.getHours() * 60 + now.getMinutes();
+  let session = 'Closed / Preparing';
+
+  if(mins >= 565 && mins < 570) session = '9:25 Morning Scan window';
+  else if(mins >= 570 && mins < 600) session = 'Opening Bell Mode active';
+  else if(mins >= 600 && mins < 960) session = 'Market open';
+  else session = 'Market closed';
+
+  document.getElementById('session').textContent = session;
 }
-render(); tick(); setInterval(tick,1000);
+
+render();
+tick();
+setInterval(tick, 1000);
+</script><script>
+const market = [
+  {sym:'SPY', name:'S&P 500 ETF', chg:0.42, weight:18},
+  {sym:'QQQ', name:'Nasdaq ETF', chg:0.63, weight:18},
+  {sym:'NQ', name:'Nasdaq Futures', chg:0.71, weight:20},
+  {sym:'VIX', name:'Volatility Index', chg:-2.15, weight:16, inverse:true},
+  {sym:'OIL', name:'WTI / Oil', chg:0.18, weight:8, inverse:true},
+  {sym:'DXY', name:'US Dollar', chg:-0.12, weight:6, inverse:true},
+  {sym:'US10Y', name:'10Y Yield', chg:-0.04, weight:6, inverse:true},
+  {sym:'COMP', name:'Nasdaq Composite', chg:0.55, weight:12}
+];
+
+const watch = [
+  {sym:'TSLA', price:318.20, chg:1.18, priority:true},
+  {sym:'META', price:742.11, chg:0.34, priority:true},
+  {sym:'NVDA', price:154.50, chg:1.02},
+  {sym:'AMD', price:168.45, chg:-0.22},
+  {sym:'AAPL', price:210.44, chg:0.14},
+  {sym:'AMZN', price:224.80, chg:0.52},
+  {sym:'MSFT', price:498.30, chg:0.28},
+  {sym:'NFLX', price:1088.10, chg:-0.45}
+];
+
+function pct(v){
+  return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+
+function cls(v){
+  return v > 0 ? 'green' : v < 0 ? 'red' : 'yellow';
+}
+
+function computeMarketScore(){
+  let total = 0;
+  let max = 0;
+
+  market.forEach(x => {
+    let move = x.inverse ? -x.chg : x.chg;
+    move = Math.max(-1.5, Math.min(1.5, move));
+    total += move * x.weight;
+    max += 1.5 * x.weight;
+  });
+
+  return Math.round(50 + (total / max) * 50);
+}
+
+function getMarketMood(score){
+  if(score >= 82) return {text:'Strong Bullish', color:'green'};
+  if(score >= 65) return {text:'Bullish Bias', color:'green'};
+  if(score >= 45) return {text:'Neutral / Wait', color:'yellow'};
+  return {text:'Bearish Bias', color:'red'};
+}
+
+function computeAIHealth(score){
+  let dataQuality = 82;
+  let marketQuality = score;
+  let riskQuality = score >= 45 && score <= 60 ? 62 : 86;
+  let total = Math.round((dataQuality + marketQuality + riskQuality) / 3);
+
+  return {
+    total,
+    dataQuality,
+    marketQuality,
+    riskQuality
+  };
+}
+
+function render(){
+  const marketRows = document.getElementById('marketRows');
+
+  marketRows.innerHTML = market.map(x => {
+    const effective = x.inverse ? -x.chg : x.chg;
+    return `
+      <div class="row">
+        <div>
+          <span class="sym">${x.sym}</span><br>
+          <span class="muted">${x.name}</span>
+        </div>
+        <span class="${cls(effective)}">${pct(x.chg)}</span>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('watchRows').innerHTML = watch.map(x => {
+    let signal = 'WAIT';
+    if(x.chg > 0.75) signal = 'CALL';
+    if(x.chg < -0.75) signal = 'PUT';
+
+    return `
+      <div class="row">
+        <div>
+          <span class="sym">${x.priority ? '⭐ ' : ''}${x.sym}</span><br>
+          <span class="muted">$${x.price.toFixed(2)}</span>
+        </div>
+        <div style="text-align:right">
+          <span class="${cls(x.chg)}">${pct(x.chg)}</span><br>
+          <span class="pill ${signal === 'CALL' ? 'green' : signal === 'PUT' ? 'red' : 'yellow'}">${signal}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const score = computeMarketScore();
+  const mood = getMarketMood(score);
+
+  document.getElementById('marketScore').textContent = score + '%';
+  document.getElementById('scoreRing').style.setProperty('--deg', score + '%');
+  document.getElementById('marketMood').textContent = mood.text;
+  document.getElementById('marketMood').className = mood.color;
+
+  document.getElementById('marketReason').innerHTML = `
+    Market Balance: <b>${score}%</b>. 
+    SPY/QQQ/NQ are checked with VIX, OIL, DXY and US10Y as risk filters.
+    Opening Bell Mode is focused on 9:25 AM → 10:00 AM.
+  `;
+}
+
+function grade(score){
+  if(score >= 95) return 'A+';
+  if(score >= 88) return 'A';
+  if(score >= 78) return 'B';
+  if(score >= 68) return 'C';
+  return 'D';
+}
+
+function chooseBestTrade(score){
+  const tsla = watch.find(x => x.sym === 'TSLA');
+  const meta = watch.find(x => x.sym === 'META');
+
+  let pick = tsla.chg >= meta.chg ? tsla : meta;
+  let signal = 'WAIT';
+  let confidence = 60;
+  let risk = 'Medium';
+
+  if(score >= 78 && pick.chg > 0.35){
+    signal = 'CALL';
+    confidence = Math.min(96, score + Math.round(pick.chg * 5));
+    risk = score >= 85 ? 'Low' : 'Medium';
+  } else if(score <= 38 && pick.chg < -0.35){
+    signal = 'PUT';
+    confidence = Math.min(94, 100 - score + Math.round(Math.abs(pick.chg) * 5));
+    risk = 'Medium';
+  } else {
+    signal = 'WAIT';
+    confidence = score >= 60 ? 68 : 58;
+    risk = 'Medium';
+  }
+
+  return {pick, signal, confidence, risk};
+}
+
+function runScan(){
+  const score = computeMarketScore();
+  const aiHealth = computeAIHealth(score);
+  const result = chooseBestTrade(score);
+
+  const entry = result.pick.price;
+  const stop = result.signal === 'CALL' ? entry * 0.992 :
+               result.signal === 'PUT' ? entry * 1.008 : entry;
+
+  const tp1 = result.signal === 'CALL' ? entry * 1.012 :
+              result.signal === 'PUT' ? entry * 0.988 : entry;
+
+  const tp2 = result.signal === 'CALL' ? entry * 1.022 :
+              result.signal === 'PUT' ? entry * 0.978 : entry;
+
+  document.getElementById('tradeResult').innerHTML = `
+    <div class="signal">
+      <div><small>Best Trade</small><b>${result.pick.sym} ${result.signal}</b></div>
+      <div><small>Confidence</small><b>${result.confidence}%</b></div>
+      <div><small>Quality</small><b>${grade(result.confidence)}</b></div>
+      <div><small>Risk</small><b>${result.risk}</b></div>
+    </div>
+
+    <p class="reason">
+      <b>Entry:</b> $${entry.toFixed(2)} ·
+      <b>Stop:</b> $${stop.toFixed(2)} ·
+      <b>TP1:</b> $${tp1.toFixed(2)} ·
+      <b>TP2:</b> $${tp2.toFixed(2)}
+      <br><br>
+      <b>Why this trade?</b><br>
+      • Market Balance: ${score}%<br>
+      • AI Health: ${aiHealth.total}%<br>
+      • ${result.pick.sym} momentum: ${pct(result.pick.chg)}<br>
+      • VIX / DXY / US10Y are used as inverse risk filters<br>
+      • Final live API confirmation still required
+    </p>
+  `;
+
+  document.getElementById('scanStatus').innerHTML = `
+    Scan complete at ${new Date().toLocaleTimeString()}.
+    AI Health: <b>${aiHealth.total}%</b>.
+  `;
+
+  document.getElementById('journal').innerHTML = `
+    <b>${new Date().toLocaleString()}</b> — 
+    ${result.pick.sym} ${result.signal}, confidence ${result.confidence}%, 
+    market score ${score}%, AI Health ${aiHealth.total}%.
+    Pending 10:00 AM evaluator.
+  `;
+}
+
+function tick(){
+  const now = new Date();
+  document.getElementById('time').textContent = now.toLocaleTimeString();
+
+  const mins = now.getHours() * 60 + now.getMinutes();
+  let session = 'Closed / Preparing';
+
+  if(mins >= 565 && mins < 570) session = '9:25 Morning Scan window';
+  else if(mins >= 570 && mins < 600) session = 'Opening Bell Mode active';
+  else if(mins >= 600 && mins < 960) session = 'Market open';
+  else session = 'Market closed';
+
+  document.getElementById('session').textContent = session;
+}
+
+render();
+tick();
+setInterval(tick, 1000);
+</script>
 </script>
 </body>
 </html>
