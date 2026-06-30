@@ -1,12 +1,41 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LOCOMOTIVE PRO X</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOCOMOTIVE PRO X</title>
+  <style>
+    body { margin:0; font-family:Arial; background:#07111f; color:white; }
+    .wrap { padding:30px; max-width:1000px; margin:auto; }
+    .card { background:#101b2e; padding:20px; border-radius:16px; margin:15px 0; }
+    button { padding:14px 20px; border:0; border-radius:10px; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🚂 LOCOMOTIVE PRO X</h1>
+    <p>Opening Bell Trading Assistant — TSLA / META</p>
+
+    <div class="card">
+      <h2>🚀 Morning Scan</h2>
+      <button onclick="runScan()">Run Morning Scan</button>
+    </div>
+
+    <div class="card" id="result">
+      Status: Ready
+    </div>
+  </div>
+
+  <script>
+    function runScan() {
+      document.getElementById("result").innerHTML = `
+        <h2>Result</h2>
+        <p><b>TSLA:</b> WAIT</p>
+        <p><b>META:</b> WAIT</p>
+        <p><b>Market Balance:</b> Neutral</p>
+        <p><b>AI Confidence:</b> 65%</p>
+      `;
+    }
+  </script>
+</body>
 </html>
